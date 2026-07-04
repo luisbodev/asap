@@ -1,5 +1,7 @@
-import { EditorPage } from "@/components/editor/EditorWorkspace";
+"use client";
 
-export default function EditorRoute() {
-  return <EditorPage />;
+import { EditorWorkspace } from "@/components/asap/editor/EditorWorkspace";
+
+export default function EditorPage() {
+  return <EditorWorkspace />;
 }

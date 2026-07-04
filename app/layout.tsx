@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppDemoProvider } from "@/context/AppDemoContext";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -43,7 +44,9 @@ export default function RootLayout({
       <body
         className={`${plusJakarta.variable} ${inter.variable} ${geistSans.variable} font-body-md antialiased overflow-hidden`}
       >
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <AppDemoProvider>{children}</AppDemoProvider>
+        </TooltipProvider>
       </body>
     </html>
   );
