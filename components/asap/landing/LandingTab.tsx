@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { AsapLogo } from "@/components/asap/layout/AsapLogo";
 import {
   Sparkles, 
@@ -52,8 +52,68 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
   const [demoPrompt, setDemoPrompt] = useState("");
   const [isDemoGenerating, setIsDemoGenerating] = useState(false);
   const [demoGeneratedAsset, setDemoGeneratedAsset] = useState<string | null>(null);
+  const [demoGenerateError, setDemoGenerateError] = useState<string | null>(null);
   const [showDemoRegisterPrompt, setShowDemoRegisterPrompt] = useState(false);
   const [demoPlatforms, setDemoPlatforms] = useState<string[]>(["tiktok"]);
+  const demoAssetRef = useRef<string | null>(null);
+
+  const setDemoAsset = (next: string | null) => {
+    if (demoAssetRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(demoAssetRef.current);
+    }
+    demoAssetRef.current = next;
+    setDemoGeneratedAsset(next);
+  };
+
+  const handleDemoGenerate = async () => {
+    setIsDemoGenerating(true);
+    setDemoAsset(null);
+    setDemoGenerateError(null);
+
+    if (demoType === "video") {
+      setTimeout(() => {
+        setIsDemoGenerating(false);
+        setDemoAsset(
+          "https://assets.mixkit.co/videos/preview/mixkit-starry-night-sky-over-a-city-timelapse-44431-large.mp4"
+        );
+      }, 2500);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/n8n/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: demoPrompt.trim() }),
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+
+      if (response.ok && contentType.startsWith("image/")) {
+        const blob = await response.blob();
+        setDemoAsset(URL.createObjectURL(blob));
+        return;
+      }
+
+      const data = (await response.json()) as { imageUrl?: string; error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Error al generar imagen");
+      }
+
+      if (!data.imageUrl) {
+        throw new Error("Respuesta sin imagen");
+      }
+
+      setDemoAsset(data.imageUrl);
+    } catch (error) {
+      setDemoGenerateError(
+        error instanceof Error ? error.message : "Error desconocido"
+      );
+    } finally {
+      setIsDemoGenerating(false);
+    }
+  };
 
   const t = {
     es: {
@@ -349,7 +409,8 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
           <button 
             onClick={() => {
               setDemoPrompt(lang === "es" ? "Un astronauta cyberpunk en un bosque bioluminiscente con tonos morados" : "A cyberpunk astronaut in a bioluminescent forest with purple tones");
-              setDemoGeneratedAsset(null);
+              setDemoAsset(null);
+              setDemoGenerateError(null);
               setShowDemoRegisterPrompt(false);
               setShowDemoModal(true);
             }}
@@ -834,7 +895,8 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
                 type="button"
                 onClick={() => {
                   setDemoPrompt(lang === "es" ? "Un astronauta cyberpunk en un bosque bioluminiscente con tonos morados" : "A cyberpunk astronaut in a bioluminescent forest with purple tones");
-                  setDemoGeneratedAsset(null);
+                  setDemoAsset(null);
+                  setDemoGenerateError(null);
                   setShowDemoRegisterPrompt(false);
                   setShowDemoModal(true);
                 }}
@@ -895,7 +957,8 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
                     type="button"
                     onClick={() => {
                       setDemoType("image");
-                      setDemoGeneratedAsset(null);
+                      setDemoAsset(null);
+                      setDemoGenerateError(null);
                       setDemoPrompt(lang === "es" ? "Un astronauta cyberpunk en un bosque bioluminiscente con tonos morados" : "A cyberpunk astronaut in a bioluminescent forest with purple tones");
                     }}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
@@ -911,7 +974,8 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
                     type="button"
                     onClick={() => {
                       setDemoType("video");
-                      setDemoGeneratedAsset(null);
+                      setDemoAsset(null);
+                      setDemoGenerateError(null);
                       setDemoPrompt(lang === "es" ? "Increíble toma de dron de una ciudad futurista con rascacielos llenos de neón" : "Amazing drone shot of a futuristic city with neon-filled skyscrapers");
                     }}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
@@ -968,18 +1032,7 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
                 <button
                   type="button"
                   disabled={isDemoGenerating || !demoPrompt.trim()}
-                  onClick={() => {
-                    setIsDemoGenerating(true);
-                    setDemoGeneratedAsset(null);
-                    setTimeout(() => {
-                      setIsDemoGenerating(false);
-                      if (demoType === "image") {
-                        setDemoGeneratedAsset("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80");
-                      } else {
-                        setDemoGeneratedAsset("https://assets.mixkit.co/videos/preview/mixkit-starry-night-sky-over-a-city-timelapse-44431-large.mp4");
-                      }
-                    }, 2500);
-                  }}
+                  onClick={handleDemoGenerate}
                   className="w-full py-3 bg-gradient-to-r from-[#a078ff] to-[#4cd7f6] text-[#001f26] font-bold text-xs rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {isDemoGenerating ? (
@@ -994,6 +1047,13 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
                     </>
                   )}
                 </button>
+
+                {demoGenerateError && !isDemoGenerating && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2">
+                    <AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-red-300">{demoGenerateError}</p>
+                  </div>
+                )}
 
                 {/* Generation Result Display */}
                 {isDemoGenerating && (
