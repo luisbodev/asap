@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
+  N8N_INSTAGRAM_WEBHOOK_URL: z.string().url().optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   META_ACCESS_TOKEN: z.string().min(1).optional(),
   META_PAGE_ID: z.string().optional(),
@@ -42,4 +43,8 @@ export function isMetaConfigured(): boolean {
 
 export function isWebhookSecretConfigured(): boolean {
   return Boolean(env.N8N_WEBHOOK_SECRET);
+}
+
+export function isN8nInstagramWebhookConfigured(): boolean {
+  return Boolean(env.N8N_INSTAGRAM_WEBHOOK_URL);
 }
