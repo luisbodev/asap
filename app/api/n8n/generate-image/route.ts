@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generarImagenN8n } from "@/lib/services/n8nService";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 120;
+
 const bodySchema = z.object({
   prompt: z.string().min(1),
 });
@@ -26,7 +29,21 @@ export async function POST(request: Request) {
   const result = await generarImagenN8n(parsed.data);
 
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 502 });
+    return NextResponse.json({ error: result.error }, { status: 503 });
+  }
+
+  if (result.kind === "stream") {
+    const headers: Record<string, string> = {
+      "Content-Type": result.mime,
+      "Content-Disposition": `inline; filename="${result.fileName}"`,
+      "Cache-Control": "no-store",
+    };
+
+    if (result.contentLength) {
+      headers["Content-Length"] = String(result.contentLength);
+    }
+
+    return new NextResponse(result.body, { status: 200, headers });
   }
 
   if (result.kind === "binary") {

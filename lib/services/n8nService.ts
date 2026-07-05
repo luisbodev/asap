@@ -13,9 +13,19 @@ export interface GenerateImagePayload {
 const MOCK_IMAGE_URL =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80";
 
+const N8N_IMAGE_TIMEOUT_MS = 110_000;
+
 export type GenerateImageResult =
   | { ok: true; kind: "url"; imageUrl: string }
   | { ok: true; kind: "binary"; buffer: Buffer; mime: string; fileName: string }
+  | {
+      ok: true;
+      kind: "stream";
+      body: ReadableStream<Uint8Array>;
+      mime: string;
+      fileName: string;
+      contentLength?: number;
+    }
   | { ok: false; error: string };
 
 interface N8nBinaryFileMeta {
@@ -257,6 +267,11 @@ async function resolveN8nBinaryMeta(
   }
 
   if (meta.id?.startsWith("filesystem-v2:")) {
+    if (!env.N8N_API_KEY) {
+      console.error("n8n devolvió metadatos binary sin N8N_API_KEY configurada");
+      return null;
+    }
+
     const remoteBuffer = await fetchN8nBinaryById(meta.id, webhookUrl);
     if (remoteBuffer && remoteBuffer.length > 0) {
       return binaryResultFromBuffer(remoteBuffer, meta, contentDisposition);
@@ -333,7 +348,31 @@ async function parseN8nImageResponse(
   return {
     ok: false,
     error:
-      "n8n devolvió metadatos de imagen sin bytes. Configura el nodo Respond to Webhook en modo Binary (propiedad data) o verifica acceso a /rest/binary-data.",
+      "n8n devolvió metadatos sin imagen. En el nodo Respond to Webhook usa modo Binary (propiedad data).",
+  };
+}
+
+function streamResultFromResponse(
+  respuesta: Response,
+  contentDisposition: string | null
+): GenerateImageResult {
+  const contentType = respuesta.headers.get("content-type");
+  const mime = parseImageMime(contentType);
+
+  if (!respuesta.body) {
+    return { ok: false, error: "Respuesta de n8n sin cuerpo" };
+  }
+
+  const contentLengthHeader = respuesta.headers.get("content-length");
+  const contentLength = contentLengthHeader ? Number(contentLengthHeader) : undefined;
+
+  return {
+    ok: true,
+    kind: "stream",
+    body: respuesta.body,
+    mime,
+    fileName: parseBinaryFileName(contentDisposition, mime),
+    contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
   };
 }
 
@@ -388,6 +427,7 @@ export async function generarImagenN8n(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: payload.prompt }),
+      signal: AbortSignal.timeout(N8N_IMAGE_TIMEOUT_MS),
     });
 
     if (!respuesta.ok) {
@@ -396,6 +436,11 @@ export async function generarImagenN8n(
 
     const contentType = respuesta.headers.get("content-type");
     const contentDisposition = respuesta.headers.get("content-disposition");
+
+    if (contentType?.toLowerCase().startsWith("image/")) {
+      return streamResultFromResponse(respuesta, contentDisposition);
+    }
+
     const buffer = Buffer.from(await respuesta.arrayBuffer());
     const parsed = await parseN8nImageResponse(
       buffer,
@@ -414,6 +459,13 @@ export async function generarImagenN8n(
 
     return parsed;
   } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      return {
+        ok: false,
+        error: "Tiempo de espera agotado generando la imagen. Intenta de nuevo.",
+      };
+    }
+
     const message = error instanceof Error ? error.message : "Error desconocido";
     console.error("Error generando imagen con n8n:", message);
     return { ok: false, error: message };

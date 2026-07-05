@@ -85,6 +85,7 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: demoPrompt.trim() }),
+        signal: AbortSignal.timeout(120_000),
       });
 
       const contentType = response.headers.get("content-type") ?? "";
@@ -95,7 +96,18 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
         return;
       }
 
-      const data = (await response.json()) as { imageUrl?: string; error?: string };
+      let data: { imageUrl?: string; error?: string } = {};
+      try {
+        data = (await response.json()) as { imageUrl?: string; error?: string };
+      } catch {
+        if (response.status >= 500) {
+          throw new Error(
+            lang === "es"
+              ? "El servidor tardó demasiado o no respondió. Intenta de nuevo en unos segundos."
+              : "The server took too long or did not respond. Try again in a few seconds."
+          );
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.error ?? "Error al generar imagen");
@@ -107,6 +119,15 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
 
       setDemoAsset(data.imageUrl);
     } catch (error) {
+      if (error instanceof Error && error.name === "TimeoutError") {
+        setDemoGenerateError(
+          lang === "es"
+            ? "La generación tardó demasiado. Intenta de nuevo."
+            : "Generation took too long. Please try again."
+        );
+        return;
+      }
+
       setDemoGenerateError(
         error instanceof Error ? error.message : "Error desconocido"
       );
