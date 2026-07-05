@@ -26,6 +26,10 @@ const geistSans = localFont({
 export const metadata: Metadata = {
   title: "ASAP AI — Social Scheduler & Analytics",
   description: "Plataforma demo ASAP AI para CMM y Content Creator",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

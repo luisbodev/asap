@@ -4,6 +4,7 @@ import { ComentariosRecientes } from "@/components/cmm/ComentariosRecientes";
 import { ContentApprovalFeed } from "@/components/approval/ContentApprovalFeed";
 import { SugerenciasContenido } from "@/components/cc/SugerenciasContenido";
 import { AssetList } from "@/components/cc/AssetList";
+import { AsapLogo } from "@/components/asap/layout/AsapLogo";
 import { Separator } from "@/components/ui/separator";
 
 export function DashboardLayout() {
@@ -12,7 +13,7 @@ export function DashboardLayout() {
       <header className="border-b bg-card">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-4 lg:px-6">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">ASAP</h1>
+            <AsapLogo href="/" size="sm" />
             <p className="text-sm text-muted-foreground">
               Plataforma demo — CMM + Content Creator
             </p>

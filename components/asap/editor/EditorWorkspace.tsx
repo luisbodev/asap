@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, Menu } from "lucide-react";
+import { AsapLogo } from "@/components/asap/layout/AsapLogo";
 import { useAppDemo } from "@/context/AppDemoContext";
 import { DEFAULT_DESCRIPTION } from "@/context/AppDemoContext";
 import type { AIClip } from "@/types/asap";
@@ -78,9 +79,10 @@ export function EditorWorkspace() {
           type="button"
           onClick={() => setSidebarCollapsed(false)}
           title={lang === "es" ? "Mostrar menú lateral" : "Expand sidebar"}
-          className="absolute left-4 top-4 z-50 p-2.5 rounded-xl bg-[#131b2e] border border-white/10 text-[#d0bcff] hover:bg-white/15 hover:text-white transition-all shadow-xl hover:scale-105 cursor-pointer flex items-center justify-center"
+          className="absolute left-4 top-4 z-50 p-2 rounded-xl bg-[#131b2e] border border-white/10 text-[#d0bcff] hover:bg-white/15 hover:text-white transition-all shadow-xl hover:scale-105 cursor-pointer flex items-center gap-2"
         >
-          <Menu size={18} />
+          <AsapLogo size="xs" />
+          <Menu size={16} />
         </button>
       )}
 

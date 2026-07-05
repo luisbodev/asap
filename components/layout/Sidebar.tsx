@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AsapLogo } from "@/components/asap/layout/AsapLogo";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, USER_AVATAR } from "@/lib/constants/navigation";
 
@@ -12,9 +13,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col h-screen py-md px-sm bg-surface-container-low border-r border-white/5 w-72 shrink-0 z-40 shadow-md shadow-primary/5">
       <div className="px-sm mb-lg">
-        <h1 className="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">
-          ASAP AI
-        </h1>
+        <AsapLogo href="/dashboard" size="sm" />
         <p className="font-label-sm text-label-sm text-on-surface-variant opacity-70">
           Pro Plan
         </p>

@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
 } from "lucide-react";
+import { AsapLogo } from "@/components/asap/layout/AsapLogo";
 import { useAppDemo } from "@/context/AppDemoContext";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +55,7 @@ export function AppSidebar() {
     >
       <div className="mb-10 px-2 select-none flex items-center justify-between">
         <div>
-          <Link href="/dashboard" className="font-headline-md text-2xl font-extrabold text-[#d0bcff] tracking-tight">
-            ASAP AI
-          </Link>
+          <AsapLogo href="/dashboard" size="sm" />
           <p className="font-label-sm text-[12px] text-[#cbc3d7]/60 uppercase tracking-widest mt-1">
             {isLoggedIn
               ? lang === "es"

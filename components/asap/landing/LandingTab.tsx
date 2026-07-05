@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
+import { AsapLogo } from "@/components/asap/layout/AsapLogo";
+import {
   Sparkles, 
   Check, 
   ArrowRight, 
@@ -253,6 +254,9 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0b1326] text-[#dae2fd] relative">
+      <div className="absolute top-4 left-6 z-30">
+        <AsapLogo href="/" size="sm" priority />
+      </div>
       
       {/* Floating Language Selector Toggle */}
       <div className="absolute top-4 right-6 flex items-center gap-1 bg-[#171f33]/80 backdrop-blur-md border border-white/5 p-1 rounded-xl z-30">
@@ -846,7 +850,10 @@ export default function LandingTab({ onLogin, isLoggedIn, onLogout, userProfileN
       </section>
 
       {/* Elegant Footer */}
-      <footer className="py-10 border-t border-white/5 text-center text-xs text-[#cbc3d7]/40 max-w-6xl mx-auto">
+      <footer className="py-10 border-t border-white/5 text-center text-xs text-[#cbc3d7]/40 max-w-6xl mx-auto space-y-3">
+        <div className="flex justify-center">
+          <AsapLogo href="/" size="xs" className="opacity-60" />
+        </div>
         <p>{activeTrans.footerLove}</p>
       </footer>
 
