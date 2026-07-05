@@ -3,7 +3,6 @@ import { z } from "zod";
 import { generarImagenN8n } from "@/lib/services/n8nService";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
 
 const bodySchema = z.object({
   prompt: z.string().min(1),

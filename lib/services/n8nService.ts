@@ -13,8 +13,6 @@ export interface GenerateImagePayload {
 const MOCK_IMAGE_URL =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80";
 
-const N8N_IMAGE_TIMEOUT_MS = 110_000;
-
 export type GenerateImageResult =
   | { ok: true; kind: "url"; imageUrl: string }
   | { ok: true; kind: "binary"; buffer: Buffer; mime: string; fileName: string }
@@ -427,7 +425,6 @@ export async function generarImagenN8n(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: payload.prompt }),
-      signal: AbortSignal.timeout(N8N_IMAGE_TIMEOUT_MS),
     });
 
     if (!respuesta.ok) {
@@ -459,13 +456,6 @@ export async function generarImagenN8n(
 
     return parsed;
   } catch (error) {
-    if (error instanceof Error && error.name === "TimeoutError") {
-      return {
-        ok: false,
-        error: "Tiempo de espera agotado generando la imagen. Intenta de nuevo.",
-      };
-    }
-
     const message = error instanceof Error ? error.message : "Error desconocido";
     console.error("Error generando imagen con n8n:", message);
     return { ok: false, error: message };
